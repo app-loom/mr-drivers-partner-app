@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "841436137028",
+    "project_id": "mr-driver-admin",
+    "storage_bucket": "mr-driver-admin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841436137028:android:40f805518b2d6084b7de11",
+        "android_client_info": {
+          "package_name": "in.co.mrdriver.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2fDbxnzkPROGA_FbFYK28gz2CeGO1yso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841436137028:android:31f892148b2cd818b7de11",
+        "android_client_info": {
+          "package_name": "in.co.mrdriver.partnerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2fDbxnzkPROGA_FbFYK28gz2CeGO1yso"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,29 +1,202 @@
 {
   "expo": {
-    "name": "mr-driver-partner-app",
+    "name": "Mr Driver Partner",
     "slug": "mr-driver-partner-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logos/mr-driver-and-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "image": "assets/logos/spash-screen.jpg",
+      "resizeMode": "cover",
+      "backgroundColor": "#0092df"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "in.co.mrdriver.partnerapp",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logos/mr-driver-and-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/logos/mr-driver-ios-logo.png"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "expo-secure-store",
+      "expo-document-picker",
+      "@rnmapbox/maps",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Mr Driver Partner App to accesses your photos"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Mr Driver Partner App to access your camera",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Mr Driver Partner App to use your location."
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/RobotoSlab-Black.ttf",
+            "./assets/fonts/RobotoSlab-Bold.ttf",
+            "./assets/fonts/RobotoSlab-ExtraBold.ttf",
+            "./assets/fonts/RobotoSlab-ExtraLight.ttf",
+            "./assets/fonts/RobotoSlab-Light.ttf",
+            "./assets/fonts/RobotoSlab-Medium.ttf",
+            "./assets/fonts/RobotoSlab-Regular.ttf",
+            "./assets/fonts/RobotoSlab-SemiBold.ttf",
+            "./assets/fonts/RobotoSlab-Thin.ttf",
+            "./assets/fonts/BlackOpsOne-Regular.ttf",
+            "./assets/fonts/Exo2-Italic-VariableFont_wght.ttf",
+            "./assets/fonts/Exo2-VariableFont_wght.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Black.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Bold.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-ExtraLight.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Light.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Medium.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Regular.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-SemiBold.ttf",
+            "./assets/fonts/GoogleSansFlex_36pt-Thin.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Roboto Slab",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Thin.ttf",
+                    "weight": 100
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-ExtraLight.ttf",
+                    "weight": 200
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-ExtraBold.ttf",
+                    "weight": 800
+                  },
+                  {
+                    "path": "./assets/fonts/RobotoSlab-Black.ttf",
+                    "weight": 900
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Google Sans Flex",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Thin.ttf",
+                    "weight": 100
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-ExtraLight.ttf",
+                    "weight": 200
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Light.ttf",
+                    "weight": 300
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/GoogleSansFlex_36pt-Black.ttf",
+                    "weight": 900
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Black Ops One",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/BlackOpsOne-Regular.ttf",
+                    "weight": 400
+                  }
+                ]
+              },
+              {
+                "fontFamily": "Exo 2",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Exo2-VariableFont_wght.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/Exo2-Italic-VariableFont_wght.ttf",
+                    "weight": 400,
+                    "style": "italic"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7861ebd5-d7b6-44df-ae80-7d6dcd6b19fc"
+      }
+    },
+    "owner": "shiyamrobertdev"
   }
 }
