@@ -37,7 +37,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 export default function FindRideScreen() {
   // const token = useUserStore((state) => state.token);
   const { ownUser } = useAuth();
-  const { coords, setCoords, currentLocation, setCurrentLocation, isLoading, timerRef, setIsLoading, startTimer, stopTimer, permissionAsked, setPermissionAsked, assignedRides, setAssignedRides, ongoingRide, setOngoingRide, currentRide, setCurrentRide, ridePostFetch, setRideHistory, startTime, setStartTime, endTime, setEndTime, elapsed, setElapsed, otp, setOtp, getRideHistory, mapboxDirections, formatTime, calculateAmount } = useRide();
+  const { coords, setCoords, currentLocation, setCurrentLocation, isLoading, timerRef, setIsLoading, startTimer, stopTimer, permissionAsked, setPermissionAsked, assignedRides, setAssignedRides, ongoingRide, setOngoingRide, currentRide, setCurrentRide, ridePostFetch, setStartTime,  setEndTime, elapsed, setElapsed, otp, setOtp, mapboxDirections, formatTime } = useRide();
   const navigation = useNavigation();
 
   const [openArrivalInfo, setOpenArrivalInfo] = useState(false);
