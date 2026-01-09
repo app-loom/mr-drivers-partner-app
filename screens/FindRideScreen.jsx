@@ -37,11 +37,8 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
 
 export default function FindRideScreen() {
   const { ownUser } = useAuth();
-  const { coords, setCoords, currentLocation, setCurrentLocation, isLoading, timerRef, setIsLoading, startTimer, stopTimer, permissionAsked, setPermissionAsked, assignedRides, setAssignedRides, ongoingRide, setOngoingRide, currentRide, setCurrentRide, ridePostFetch, setStartTime, setEndTime, elapsed, setElapsed, otp, setOtp, mapboxDirections, formatTime } = useRide();
+  const { coords, setCoords, currentLocation, startTimer, stopTimer, assignedRides, setAssignedRides, ongoingRide, setOngoingRide, currentRide, setCurrentRide, ridePostFetch, setStartTime, setEndTime, elapsed, setElapsed, otp, setOtp, mapboxDirections, formatTime, appInfo } = useRide();
   const navigation = useNavigation();
-
-  const [openArrivalInfo, setOpenArrivalInfo] = useState(false);
-  const [openStartRide, setOpenStartRide] = useState(false);
 
   const [hasArrived, setHasArrived] = useState(false);
   const [selectedDestination, setSelectedDestination] = useState(null);
@@ -85,7 +82,7 @@ export default function FindRideScreen() {
 
   const bottomSheetRef = useRef(null);
 
-  const snapPoints = useMemo(() => ["4%", "40%", "60%", "90%"], []);
+  const snapPoints = useMemo(() => ["11%", "45%", "60%", "90%"], []);
 
   useEffect(() => {
     if (sheetReady && assignedRides?.length > 0 && bottomSheetRef.current) {
@@ -101,7 +98,6 @@ export default function FindRideScreen() {
       };
 
       const res = await ridePostFetch("driver/updateRide", bodyTxt);
-      console.log(res);
 
       if (!res.success) {
         throw new Error(res.message || "Failed to update ride");
@@ -117,7 +113,6 @@ export default function FindRideScreen() {
       };
 
       const res1 = await ridePostFetch("driver/start", bodyTxt1);
-      console.log(res1);
 
       if (!res1.success) {
         throw new Error("Failed to start ride");
@@ -195,7 +190,6 @@ export default function FindRideScreen() {
 
     try {
       const res = await ridePostFetch("driver/verifyRideOtp", bodyTxt);
-      console.log(res);
 
       if (res.success) {
         setOtpModal(false);
@@ -307,7 +301,7 @@ export default function FindRideScreen() {
         userId: ride.userId,
       };
 
-      const res = await ridePostFetch("driver/sendOtp", bodyTxt);
+      const res = await ridePostFetch("driver/sendRideOtp", bodyTxt);
 
       if (res?.success) {
         setOtpModal(true);
@@ -348,6 +342,9 @@ export default function FindRideScreen() {
 
         <BottomSheet ref={bottomSheetRef} index={0} snapPoints={snapPoints} enablePanDownToClose={false} backgroundStyle={styles.sheetBackground} onChange={() => setSheetReady(true)} handleComponent={() => <HandleIndicator onPress={() => bottomSheetRef?.current?.snapToIndex(1)} />} overDragResistanceFactor={2} animateOnMount>
           <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
+            <TouchableOpacity onPress={() => bottomSheetRef.current.snapToIndex(1)} style={{ alignItems: "center" }}>
+              <Text style={{ textAlign: "center", marginBottom: 12, paddingHorizontal: 15, fontWeight: 700, paddingVertical: 6, fontSize: 14, lineHeight: 20, color: Colors.whiteColor, borderRadius: 20, fontFamily: Fonts.GoogleSansFlex, fontWeight: "400", letterSpacing: 0.2, backgroundColor: PRIMARY }}>Track your Ride Request Here</Text>
+            </TouchableOpacity>
             {assignedRides?.length > 0 ? (
               assignedRides.map((ride, index) => (
                 <View key={ride._id} style={styles.rideCard}>
@@ -395,7 +392,13 @@ export default function FindRideScreen() {
                   </View>
 
                   <View style={styles.actionRow}>
-                    <TouchableOpacity onPress={() => getDirections(ride.destination)} style={styles.btnPrimaryRow}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        bottomSheetRef?.current?.snapToIndex(0);
+                        getDirections(ride.destination);
+                      }}
+                      style={styles.btnPrimaryRow}
+                    >
                       <Entypo name="direction" size={18} color="#fff" />
                       <Text style={styles.btnPrimaryRowText}>Directions</Text>
                     </TouchableOpacity>
@@ -472,8 +475,8 @@ export default function FindRideScreen() {
         )}
 
         <Modal visible={ongoingModal} transparent animationType="slide" onRequestClose={() => setOngoingModal(false)}>
-          <View style={styles.modalOverlayDark}>
-            <View style={styles.ongoingModal}>
+          <View style={styles.modalOverlayDarkOngoing}>
+            <View style={styles.ongoingModalCard}>
               <View style={styles.dragHandle} />
 
               <View style={styles.rideTimeCard}>
@@ -498,7 +501,7 @@ export default function FindRideScreen() {
               <View style={styles.row}>
                 <View style={styles.infoCard}>
                   <Text style={styles.infoLabel}>Fare</Text>
-                  <Text style={styles.infoValue}>₹ {rideFarePerHour} / hr</Text>
+                  <Text style={styles.infoValue}>₹ {appInfo?.baseFare} / hr</Text>
                 </View>
 
                 <View style={styles.infoCard}>
@@ -738,13 +741,13 @@ const styles = StyleSheet.create({
   /* OTP Modal */
   modalOverlayDark: {
     flex: 1,
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "rgba(23,32,42,0.5)",
   },
 
   otpModal: {
-    width: "92%",
+    width: "90%",
     backgroundColor: Colors.whiteColor,
     padding: 24,
     borderRadius: 24,
@@ -794,6 +797,21 @@ const styles = StyleSheet.create({
     color: "#36454F",
     textAlign: "center",
   },
+
+  modalOverlayDarkOngoing: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+    backgroundColor: "rgba(23,32,42,0.5)",
+  },
+
+  ongoingModalCard: {
+    width: "100%",
+    backgroundColor: Colors.whiteColor,
+    padding: 24,
+    borderRadius: 24,
+  },
+
   /* Floating Button */
   floatingButton: {
     position: "absolute",
@@ -869,8 +887,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.clouds_300,
-    backgroundColor: Colors.clouds_100,
+    borderColor: Colors.clouds_500,
+    backgroundColor: Colors.clouds_300,
     marginBottom: 12,
   },
 
@@ -900,8 +918,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.clouds_300,
-    backgroundColor: Colors.whiteColor,
+    borderColor: Colors.clouds_500,
+    backgroundColor: Colors.clouds_300,
   },
 
   infoLabel: {
@@ -927,6 +945,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderColor: "#E5E4E2",
     borderWidth: 1,
+    marginBottom: 45,
   },
 
   cancelSoftText: {

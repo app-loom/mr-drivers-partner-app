@@ -51,7 +51,7 @@ export default function ProfileScreen() {
             <View style={styles.avatarWrapper}>
               <Image
                 source={{
-                  uri: ownUser?.profilePicture || user.profilePicture,
+                  uri: ownUser?.profilePictureFull
                 }}
                 style={styles.avatar}
               />

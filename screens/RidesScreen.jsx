@@ -28,6 +28,7 @@ function RideCard({ ride }) {
   };
 
   const status = statusMap[ride.status];
+  const isOngoing = ride.status === "ongoing";
 
   const formatIST = (date) =>
     new Date(date).toLocaleString("en-IN", {
@@ -37,7 +38,10 @@ function RideCard({ ride }) {
     });
 
   return (
-    <TouchableOpacity activeOpacity={0.92} style={styles.card}>
+    <TouchableOpacity activeOpacity={0.92} style={[styles.card, isOngoing && styles.priorityCard]}>
+      {/* Priority indicator */}
+      {isOngoing && <View style={styles.priorityStrip} />}
+
       <View style={styles.topRow}>
         <Text style={styles.route} numberOfLines={1}>
           {ride.origin?.name} → {ride.destination?.name}
@@ -49,7 +53,7 @@ function RideCard({ ride }) {
       </View>
 
       <Text style={styles.time}>
-        {formatIST(ride.rideStartTime)} – {formatIST(ride.rideEndTime)}
+        {formatIST(ride.rideStartTime)} – {ride.rideEndTime ? formatIST(ride.rideEndTime) : "Now"}
       </Text>
 
       <View style={styles.bottomRow}>
@@ -106,7 +110,7 @@ export default function RidesScreen() {
       {rideHistory.length > 0 || loading ? (
         <FlatList
           data={rideHistory}
-          keyExtractor={(item) => item._id}
+          keyExtractor={(item, index) => `${item._id}-${index}`}
           onEndReached={() => {
             if (!onEndReachedCalledDuringMomentum.current) {
               loadMoreHistory();
@@ -230,5 +234,20 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.GoogleSansFlex,
     fontWeight: "600",
     // color: Colors.turquoise_700,
+  },
+  priorityCard: {
+    borderWidth: 1.5,
+    borderColor: Colors.peter_river_300,
+    backgroundColor: Colors.peter_river_50,
+  },
+
+  priorityStrip: {
+    position: "absolute",
+    left: 0,
+    top: 12,
+    bottom: 12,
+    width: 4,
+    borderRadius: 4,
+    backgroundColor: Colors.peter_river_600,
   },
 });

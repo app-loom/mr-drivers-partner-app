@@ -7,14 +7,17 @@ import { ScrollView } from "react-native-gesture-handler";
 import ScreenGradient from "../components/ScreenGradient";
 import { faqs } from "../constants/data";
 import appStyle from "../lib/style";
+import { useRide } from "../context/useRide";
 
 const { Colors, Fonts } = appStyle;
 
 export default function HelpCenterScreen() {
   const navigation = useNavigation();
 
+  const { appInfo } = useRide();
+
   const callSupport = () => {
-    Linking.openURL("tel:+123456789");
+    Linking.openURL(`tel:${appInfo[0]?.supportContact}`);
   };
 
   return (
@@ -57,7 +60,6 @@ export default function HelpCenterScreen() {
             ))}
           </View>
 
-          {/* Support Card */}
           <View style={styles.supportCard}>
             <View style={styles.supportIcon}>
               <Ionicons name="chatbubbles-outline" size={26} color={Colors.peter_river_600} />

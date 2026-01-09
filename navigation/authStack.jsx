@@ -7,6 +7,7 @@ import CompleteProfileScreen from "../screens/CompleteProfileScreen";
 import SetProfilePictureScreen from "../screens/SetProfilePictureScreen";
 import DrivingLicenseScreen from "../screens/DrivingLicenseScreen";
 import SubmitScreen from "../screens/SubmitScreen";
+import TermsAndConditionsScreen from "../screens/TermsAndConditionsScreen";
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,7 @@ function AuthStack({ initialRoute }) {
       <Stack.Screen name="set-profile-pic" component={SetProfilePictureScreen} />
       <Stack.Screen name="add-driving-license" component={DrivingLicenseScreen} />
       <Stack.Screen name="submit-application" component={SubmitScreen} />
+      <Stack.Screen name="terms-and-conditions" component={TermsAndConditionsScreen} />
     </Stack.Navigator>
   );
 }

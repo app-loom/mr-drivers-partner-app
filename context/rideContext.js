@@ -19,6 +19,7 @@ export const RideProvider = ({ children }) => {
   const [otp, setOtp] = useState(null);
   const [rideHistory, setRideHistory] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [appInfo, setAppInfo] = useState(null);
 
   const timerRef = useRef();
 
@@ -39,7 +40,17 @@ export const RideProvider = ({ children }) => {
       const res = await ridePostFetch("driver/getNotifications", { limit, page });
       return res;
     } catch (err) {
-      console.error("Failed to fetch your ride history:", err);
+      console.error("Failed to fetch your ride notifcations:", err);
+      return null;
+    }
+  };
+
+  const getAppInfo = async () => {
+    try {
+      const res = await ridePostFetch("ride/getAppInfo");
+      return res;
+    } catch (err) {
+      console.error("Failed to fetch your app info:", err);
       return null;
     }
   };
@@ -72,8 +83,6 @@ export const RideProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
     const loadRides = async () => {
       if (!accessToken) return;
       setNotifications([]);
@@ -82,11 +91,13 @@ export const RideProvider = ({ children }) => {
       const rides = await getAssignedRides();
       const history = await getRideHistory(10, 1);
       const notifications = await getNotifications(10, 1);
+      const app = await getAppInfo();
 
       setOngoingRide(rides.ongoingRide);
       setAssignedRides(rides.acceptedRides || []);
       setRideHistory((prev) => [...prev, ...(history.history || [])]);
       setNotifications((prev) => [...prev, ...(notifications.notifications || [])]);
+      setAppInfo(app);
 
       if (rides?.ongoingRide?.rideStartTime) {
         setStartTime(new Date(rides.ongoingRide.rideStartTime).getTime());
@@ -97,10 +108,6 @@ export const RideProvider = ({ children }) => {
     };
 
     loadRides();
-
-    return () => {
-      isMounted = false;
-    };
   }, [accessToken]);
 
   useEffect(() => {
@@ -210,6 +217,7 @@ export const RideProvider = ({ children }) => {
         notifications,
         getNotifications,
         setNotifications,
+        appInfo,
       }}
     >
       {children}

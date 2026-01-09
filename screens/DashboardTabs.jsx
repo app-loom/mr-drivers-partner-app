@@ -80,12 +80,12 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: Colors.whiteColor,
     borderTopWidth: 1,
-    borderTopColor: Colors.clouds_300,
+    borderTopColor: Colors.clouds_500,
 
-    height: 64,
-    paddingTop: 6,
+    height: 70,
+    paddingTop: 19,
 
-    elevation: 0,
+    elevation: 1,
     shadowOpacity: 0,
   },
 

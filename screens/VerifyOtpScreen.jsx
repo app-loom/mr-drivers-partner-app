@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StatusBar, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { CodeField, Cursor, useBlurOnFulfill, useClearByFocusCell } from "react-native-confirmation-code-field";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,11 +14,14 @@ export default function VerifyOtpScreen() {
   const { ownUser, setOwnUser, authPostFetch } = useAuth();
 
   const navigation = useNavigation();
-
+  const OTP_DURATION = 120;
+  const [timer, setTimer] = useState(OTP_DURATION);
+  const [canResend, setCanResend] = useState(false);
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
 
   const ref = useBlurOnFulfill({ value: otp, cellCount: CELL_COUNT });
+
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value: otp,
     setValue: setOtp,
@@ -52,10 +55,8 @@ export default function VerifyOtpScreen() {
     try {
       const res = await authPostFetch("driver/verifyotp", bodyTxt);
       if (!res?.success) {
-        return showError("Verification failed", res?.data?.message);
+        return showError("Verification failed", res?.message);
       }
-
-      setOwnUser(res.data);
 
       Toast.show({
         type: "success",
@@ -68,20 +69,53 @@ export default function VerifyOtpScreen() {
         navigation.navigate("complete-profile");
       }, 1200);
     } catch (err) {
-      showError("Verification failed", err?.response?.data?.message || "Something went wrong.");
+      showError("Verification failed", err?.message || "Something went wrong.");
     } finally {
       setIsVerifying(false);
     }
   };
 
-  const handleResend = () => {
-    Toast.show({
-      type: "info",
-      text1: "OTP resent",
-      text2: "Please check your mobile for the new code.",
-      text2Style: { fontSize: 12 },
-    });
+  const handleResend = async () => {
+    if (!canResend) return;
+
+    try {
+      const res = await authPostFetch("driver/sendOTP", { mobileNumber: ownUser?.mobileNumber });
+      if (!res?.success) {
+        return showError("Verification failed", res?.message);
+      }
+      Toast.show({
+        type: "info",
+        text1: "OTP resent",
+        text2: "Please check your mobile for the new code.",
+        text2Style: { fontSize: 12 },
+      });
+      setTimer(OTP_DURATION);
+      setCanResend(false);
+    } catch (err) {
+      showError("Verification failed", err?.message || "Something went wrong.");
+    } finally {
+      setIsVerifying(false);
+    }
   };
+
+  const formatTimer = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  useEffect(() => {
+    if (timer === 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimer((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timer]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -115,10 +149,16 @@ export default function VerifyOtpScreen() {
         </View>
 
         <View style={styles.resendRow}>
-          <Text style={styles.resendText}>Didn’t receive the code?</Text>
-          <Text onPress={handleResend} style={styles.resendAction}>
-            Resend
-          </Text>
+          {!canResend ? (
+            <Text style={styles.timerText}>Resend OTP in {formatTimer(timer)}</Text>
+          ) : (
+            <>
+              <Text style={styles.resendText}>Didn’t receive the code?</Text>
+              <Text onPress={() => handleResend()} style={styles.resendAction}>
+                Resend
+              </Text>
+            </>
+          )}
         </View>
 
         <TouchableOpacity activeOpacity={0.85} disabled={isVerifying} onPress={handleVerify} style={[styles.verifyButton, isVerifying && styles.verifyButtonDisabled]}>
@@ -253,5 +293,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.GoogleSansFlex,
     fontWeight: "600",
     letterSpacing: 0.3,
+  },
+  timerText: {
+    fontSize: 14,
+    color: Colors.asbestos,
+    fontFamily: Fonts.GoogleSansFlex,
+    fontWeight: "400",
   },
 });

@@ -131,9 +131,13 @@ export default function CompleteProfileScreen() {
           />
 
           <View style={styles.termsRow}>
-            <Checkbox value={accepted} onValueChange={setAccepted} color={PRIMARY} />
+            <Checkbox value={accepted} onValueChange={setAccepted} color={PRIMARY} style={styles.checkbox} />
+
             <Text style={styles.termsText}>
-              I agree to the <Text style={styles.termsLink}>Terms & Conditions</Text>
+              I agree to the{" "}
+              <Text style={styles.termsLink} onPress={() => navigation.navigate("terms-and-conditions")}>
+                Terms & Conditions
+              </Text>
             </Text>
           </View>
         </View>
@@ -255,9 +259,12 @@ const styles = StyleSheet.create({
   /* Terms */
   termsRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-    marginTop: 6,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  checkbox: {
+    marginRight: 10,
   },
 
   termsText: {
@@ -273,6 +280,7 @@ const styles = StyleSheet.create({
     color: PRIMARY,
     fontFamily: Fonts.GoogleSansFlex,
     fontWeight: "600",
+    textDecorationLine: "underline",
   },
 
   /* Submit */

@@ -2,6 +2,7 @@ import React from "react";
 import { Image, Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/useAuth";
+import { Colors, Fonts } from "../lib/style";
 
 const ONLINE = "#16A34A";
 const ONLINE_BG = "#DCFCE7";
@@ -51,7 +52,7 @@ export default function Navbar() {
     <View style={styles.wrapper}>
       <View style={styles.container}>
         <Image source={require("../assets/logos/mr-driver-partner-logo.png")} resizeMode="contain" style={styles.logo} />
-
+        <Text style={styles.infoLabel}>Mr Driver Partner</Text>
         <TouchableOpacity activeOpacity={0.8} onPress={switchStatus} style={[styles.statusButton, isDriverOnline ? styles.onlineButton : styles.offlineButton]}>
           <Text style={[styles.statusText, isDriverOnline ? styles.onlineText : styles.offlineText]}>{isOnline}</Text>
         </TouchableOpacity>
@@ -64,8 +65,15 @@ const styles = StyleSheet.create({
   wrapper: {
     width: "100%",
     marginTop: 8,
+    paddingHorizontal: 10,
   },
-
+  infoLabel: {
+    fontSize: 17,
+    fontFamily: Fonts.GoogleSansFlex,
+    color: Colors.asbestos,
+    fontWeight: 500,
+    textTransform: "uppercase",
+  },
   container: {
     flexDirection: "row",
     alignItems: "center",

@@ -7,13 +7,37 @@ import { Colors, Fonts } from "../lib/style";
 const PRIMARY = "#0193e0";
 
 const notificationIconMap = {
-  accepted: { icon: "checkmark-circle", color: Colors.emerald_600, bg: Colors.emerald_50 },
-  cancelled: { icon: "close-circle", color: Colors.alizarin_600, bg: Colors.alizarin_50 },
-  payment: { icon: "card", color: Colors.peter_river_600, bg: Colors.peter_river_50 },
-  completed: { icon: "flag", color: Colors.turquoise_600, bg: Colors.turquoise_50 },
-  booked: { icon: "car", color: Colors.amethyst_600, bg: Colors.amethyst_50 },
-  ongoing: { icon: "time", color: Colors.orange_600, bg: Colors.orange_50 },
+  accepted: {
+    icon: "checkmark-circle",
+    color: Colors.emerald_600,
+    bg: Colors.emerald_50,
+  },
+
+  cancelled: {
+    icon: "close-circle",
+    color: Colors.alizarin_600,
+    bg: Colors.alizarin_50,
+  },
+
+  payment: {
+    icon: "card-outline",
+    color: Colors.peter_river_600,
+    bg: Colors.peter_river_50,
+  },
+
+  completed: {
+    icon: "flag-outline",
+    color: Colors.turquoise_600,
+    bg: Colors.turquoise_50,
+  },
+
+  ongoing: {
+    icon: "time-outline",
+    color: Colors.orange_600,
+    bg: Colors.orange_50,
+  },
 };
+
 const formatNotifications = (notifs = []) =>
   notifs.map((n) => ({
     id: n._id,
@@ -31,15 +55,16 @@ const defaultWelcomeNotification = {
   id: "default-welcome",
   title: "Welcome!",
   message: "Thanks for joining our community. Enjoy safe rides!",
-  type: "booked",
+  type: "welcome",
   time: "Today",
+  icon: "notifications-outline",
 };
 
 function NotificationCard({ item }) {
   const meta = notificationIconMap[item.type] || {
     icon: "notifications-outline",
     color: Colors.asbestos,
-    bg: Colors.clouds_400,
+    bg: Colors.clouds_200,
   };
 
   return (
@@ -179,9 +204,9 @@ const styles = StyleSheet.create({
   },
 
   iconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
   },

@@ -18,7 +18,6 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-
   const showError = (title, message) => {
     Toast.show({
       type: "error",
@@ -59,11 +58,8 @@ export default function SignUpScreen() {
       };
 
       const res = await mrDriverPartnerSignup(bodyTxt);
-
-      console.log(res)
-
-      if (!res?.data?.success) {
-        showError("Signup failed", res?.data?.message || "Try again later.");
+      if (!res?.success) {
+        showError("Signup failed", res?.message);
         return;
       }
 
@@ -80,13 +76,11 @@ export default function SignUpScreen() {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.content}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join us and start earning today</Text>
         </View>
 
-        {/* Inputs */}
         <View style={styles.inputGroup}>
           <TextInput placeholder="Full Name" value={fullName} onChangeText={setFullName} placeholderTextColor="#6B7280" style={styles.input} />
 
@@ -97,14 +91,12 @@ export default function SignUpScreen() {
           <TextInput placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholderTextColor="#6B7280" style={styles.input} />
         </View>
 
-        {/* Submit */}
         <TouchableOpacity onPress={handleSignUp} disabled={isLoading} activeOpacity={0.9} style={styles.buttonWrapper}>
           <LinearGradient colors={["#0193e0", "#00b4ff"]} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>{isLoading ? "Creating account..." : "Sign Up"}</Text>
           </LinearGradient>
         </TouchableOpacity>
 
-        {/* Footer */}
         <Text style={styles.footerText}>
           Already have an account?{" "}
           <Text style={styles.signInText} onPress={() => navigation.navigate("sign-in")}>

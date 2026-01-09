@@ -1,14 +1,23 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/useAuth";
 import { useNavigation } from "@react-navigation/native";
 import { Colors, Fonts } from "../lib/style";
+import * as ImageManipulator from "expo-image-manipulator";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { firebaseConfig } from "../firebase";
+import { initializeApp, getApps } from "firebase/app";
+import { LinearGradient } from "expo-linear-gradient";
 
 const PRIMARY = "#0193e0";
+
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
+}
 
 export default function SetProfilePictureScreen() {
   const { ownUser, setOwnUser, authPostFetch } = useAuth();
@@ -18,94 +27,173 @@ export default function SetProfilePictureScreen() {
   const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      Toast.show({
-        type: "error",
-        text1: "Gallery permission required",
-        text2: "Please allow gallery access to upload a photo.",
-        text2Style: { fontSize: 12 },
-      });
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  const captureImage = async () => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (!permission.granted) {
-      Toast.show({
-        type: "error",
-        text1: "Camera permission required",
-        text2: "Please allow camera access to take a photo.",
-        text2Style: { fontSize: 12 },
-      });
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-      cameraType: ImagePicker.CameraType.front,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
-  const handleContinue = async () => {
-    if (uploading) return;
-
-    if (!image) {
-      Toast.show({
-        type: "error",
-        text1: "Profile photo required",
-        text2: "Please upload or capture a profile photo to continue.",
-        text2Style: { fontSize: 12 },
-      });
-      return;
-    }
-
-    setUploading(true);
-
     try {
-      const bodyTxt = {
-        regiStatus: "drivlic",
-        profilePicture: image,
-      };
-      const res = await authPostFetch("driver/update", bodyTxt);
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-      if (!res?.success) {
+      if (!permission.granted) {
         Toast.show({
           type: "error",
-          text1: "Upload failed",
-          text2: res?.data?.message || "Please try again.",
+          text1: "Gallery permission required",
+          text2: "Please allow gallery access to upload a photo.",
+          text2Style: { fontSize: 12 },
         });
         return;
       }
 
-      setOwnUser(res.data.data);
-      navigation.navigate("add-driving-license");
-    } catch (err) {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [3, 4],
+        quality: 1,
+        selectionLimit: 1,
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+
+      if (asset.height + 20 < asset.width) {
+        Toast.show({
+          type: "error",
+          text1: "Landscape Image Not Allowed",
+          text2: "Please select a portrait-oriented image.",
+        });
+        return;
+      }
+      if (asset.width < 500) {
+        Toast.show({
+          type: "error",
+          text1: "Image Too Small",
+          text2: "Please select an image with a minimum width of 500 pixels.",
+        });
+        return;
+      }
+      setImage(result.assets[0]);
+    } catch (error) {
+      console.error("Image-picker error:", error);
       Toast.show({
         type: "error",
-        text1: "Upload failed",
-        text2: err?.response?.data?.message || "Something went wrong.",
+        text1: "Something Went Wrong",
+        text2: "An unexpected error occurred while selecting the image.",
       });
+    }
+  };
+
+  const openCamera = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("Camera Permission Required", "Please grant camera access to take a photo.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        allowsEditing: false,
+        aspect: [3, 4],
+        quality: 1,
+      });
+
+      if (result.canceled) return;
+
+      const asset = result.assets[0];
+
+      if (asset.height < asset.width) {
+        Toast.show({
+          type: "error",
+          text1: "Landscape Image Not Allowed",
+          text2: "Please take a portrait-oriented photo.",
+        });
+        return;
+      }
+
+      if (asset.width < 500) {
+        Toast.show({
+          type: "error",
+          text1: "Image Too Small",
+          text2: "Please use a photo that is at least 500 pixels wide.",
+        });
+        return;
+      }
+      setImage(result.assets[0]);
+    } catch (error) {
+      console.error("Camera error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Something Went Wrong",
+        text2: "An error occurred while accessing the camera.",
+      });
+    }
+  };
+
+  const createThumbnail = async (sourceImage) => {
+    let manipResult = await ImageManipulator.manipulateAsync(sourceImage, [{ resize: { width: 800 } }], { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG });
+    let sqrImg = await ImageManipulator.manipulateAsync(manipResult.uri, [{ crop: { height: 800, originX: 0, originY: 0, width: 800 } }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG });
+    // let thumbnail = await ImageManipulator.manipulateAsync(sqrImg.uri, [{ resize: { width: 200 } }], { compress: 1, format: ImageManipulator.SaveFormat.JPEG });
+    return { fullImage: manipResult.uri, sqrImage: sqrImg.uri };
+  };
+
+  const uriToBlob = async (uri) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => resolve(xhr.response);
+      xhr.onerror = (e) => {
+        console.error("Blob fetch error:", e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
+      xhr.send(null);
+    });
+  };
+
+  const uploadImageAsync = async () => {
+    try {
+      setUploading(true);
+      const uri = image.uri;
+      const { fullImage, sqrImage } = await createThumbnail(uri);
+
+      const [fullBlob, sqrBlob] = await Promise.all([uriToBlob(fullImage), uriToBlob(sqrImage)]);
+      const storage = getStorage();
+      const basePath = `mrDriverPartnerProfile/${ownUser._id}-${ownUser.mobileNumber}`;
+
+      const fullFileRef = ref(storage, `${basePath}/port_${Date.now()}.jpg`);
+      const sqrFileRef = ref(storage, `${basePath}/sqr_${Date.now()}.jpg`);
+      await Promise.all([uploadBytes(fullFileRef, fullBlob), uploadBytes(sqrFileRef, sqrBlob)]);
+      fullBlob.close?.();
+      sqrBlob.close?.();
+      const [fullUrl, sqrUrl] = await Promise.all([getDownloadURL(fullFileRef), getDownloadURL(sqrFileRef)]);
+      // console.log("Full:", fullUrl);
+      // console.log("Square:", sqrUrl);
+
+      const bodyTxt = {
+        regiStatus: "drivlic",
+        profilePictureFull: fullUrl,
+        profilePictureSquare: sqrUrl,
+      };
+
+      const res = await authPostFetch("driver/update", bodyTxt);
+      if (res.success) {
+        Toast.show({
+          type: "success",
+          text1: "Profile Pic Updated Successfully",
+          text2: "Profile Pic Updated Successfully",
+        });
+        navigation.navigate('add-driving-license')
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Something Went Wrong",
+          text2: "An error occurred while Uploading Image",
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Something Went Wrong",
+        text2: error?.message ?? "Upload failed",
+      });
+      console.error("Image upload failed:", error);
+      throw error;
     } finally {
       setUploading(false);
     }
@@ -122,10 +210,10 @@ export default function SetProfilePictureScreen() {
         </View>
 
         <View style={styles.avatarSection}>
-          <View style={styles.avatarWrapper}>{image ? <Image source={{ uri: image }} style={styles.avatarImage} /> : <Ionicons name="person-circle-outline" size={80} color="#9CA3AF" />}</View>
+          <View style={styles.avatarWrapper}>{image ? <Image source={{ uri: image.uri }} style={styles.avatarImage} /> : <Ionicons name="person-circle-outline" size={80} color="#9CA3AF" />}</View>
 
           <View style={styles.actionRow}>
-            <ActionButton icon="camera-outline" label="Camera" onPress={captureImage} />
+            <ActionButton icon="camera-outline" label="Camera" onPress={openCamera} />
             <ActionButton icon="image-outline" label="Gallery" onPress={pickImage} />
           </View>
 
@@ -148,10 +236,15 @@ export default function SetProfilePictureScreen() {
             ))}
           </View>
         </View>
+        {uploading && (
+          <Text style={[styles.textSign, { color: "#fff" }]}>
+            Uploading <ActivityIndicator size="large" color="white" />{" "}
+          </Text>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} disabled={uploading} onPress={handleContinue} style={[styles.submitButton, uploading && styles.submitButtonDisabled]}>
+        <TouchableOpacity activeOpacity={0.85} disabled={uploading || !image} onPress={() => uploadImageAsync()} style={[styles.submitButton, uploading && styles.submitButtonDisabled]}>
           <Text style={styles.submitButtonText}>{uploading ? "Saving..." : "Continue"}</Text>
         </TouchableOpacity>
       </View>

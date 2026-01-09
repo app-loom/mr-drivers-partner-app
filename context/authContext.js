@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [pendingNotification, setPendingNotification] = useState(null);
   const [initialRoute, setInitialRoute] = useState(null);
   const [notificaitons, setNotificaitons] = useState([]);
-  const [isOnline, setIsOnline] = useState('Offline');
+  const [isOnline, setIsOnline] = useState("Offline");
 
   const app = getApp();
   const messagingInstance = getMessaging(app);
@@ -219,7 +219,6 @@ export const AuthProvider = ({ children }) => {
         setAccessToken(res.data.accessToken);
         setRefreshToken(res.data.refreshToken);
         setOwnUser(res.data.userData);
-        console.log(res.data.userData);
       } else {
         Toast.show({
           type: "error",
@@ -246,7 +245,6 @@ export const AuthProvider = ({ children }) => {
       mobileNumber,
       password,
       regiStatus,
-      otp: "1234",
       brand: Device.brand,
       modelName: Device.modelName,
       osName: Device.osName,
@@ -256,7 +254,6 @@ export const AuthProvider = ({ children }) => {
 
     try {
       const res = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}driver/signup`, bodytxt);
-      console.log(res.data);
       if (res.data.success) {
         await SecureStore.setItemAsync("AccessToken", res.data.accessToken);
         await SecureStore.setItemAsync("RefreshToken", res.data.refreshToken);
@@ -264,6 +261,19 @@ export const AuthProvider = ({ children }) => {
         setAccessToken(res.data.accessToken);
         setRefreshToken(res.data.refreshToken);
         setOwnUser(res.data.userData);
+
+        if (res.data.userData.regiStatus === "verif") {
+          const res1 = await axios.post(`${process.env.EXPO_PUBLIC_BASE_URL}driver/sendOTP`, { mobileNumber: res.data.userData.mobileNumber });
+          if (!res1.data.success) {
+            Toast.show({
+              type: "info",
+              text1: "Unable to send OTP",
+              text2: "Plese try again later",
+              text2Style: { fontSize: 12 },
+            });
+          }
+        }
+        return res.data;
       } else {
         Toast.show({
           type: "error",
@@ -319,6 +329,7 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   };
+
 
   const authPostFetch = async (url, options = {}, updateUser = false) => {
     const config = {
