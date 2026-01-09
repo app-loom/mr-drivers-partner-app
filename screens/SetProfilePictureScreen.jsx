@@ -178,7 +178,7 @@ export default function SetProfilePictureScreen() {
           text1: "Profile Pic Updated Successfully",
           text2: "Profile Pic Updated Successfully",
         });
-        navigation.navigate('add-driving-license')
+        navigation.navigate("add-driving-license");
       } else {
         Toast.show({
           type: "error",
@@ -237,9 +237,9 @@ export default function SetProfilePictureScreen() {
           </View>
         </View>
         {uploading && (
-          <Text style={[styles.textSign, { color: "#fff" }]}>
-            Uploading <ActivityIndicator size="large" color="white" />{" "}
-          </Text>
+          <View style={{ marginTop: 20 }}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+          </View>
         )}
       </ScrollView>
 

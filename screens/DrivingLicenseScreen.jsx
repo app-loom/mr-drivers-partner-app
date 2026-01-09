@@ -1,76 +1,121 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
-import { Image, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View, StyleSheet } from "react-native";
+import { Image, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { useAuth } from "../context/useAuth";
 import { useNavigation } from "@react-navigation/native";
 import { Colors, Fonts } from "../lib/style";
+import * as ImageManipulator from "expo-image-manipulator";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { firebaseConfig } from "../firebase";
+import { initializeApp, getApps } from "firebase/app";
 
 const PRIMARY = "#0193e0";
 
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
+}
+
 export default function DrivingLicenseScreen() {
-  const { ownUser, setOwnUser, authPostFetch } = useAuth();
+  const { ownUser, authPostFetch } = useAuth();
   const navigation = useNavigation();
 
   const [frontImage, setFrontImage] = useState(null);
   const [backImage, setBackImage] = useState(null);
   const [drivingLicenseNo, setDrivingLicenseNo] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const pickImage = async (side) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permission.granted) {
       Toast.show({
         type: "error",
         text1: "Permission required",
-        text2: "Please allow gallery access to upload documents.",
-        text2Style: { fontSize: 12 },
+        text2: "Please allow gallery access.",
       });
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8,
+      aspect: [3, 2],
+      quality: 1,
+      selectionLimit: 1,
     });
 
     if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      side === "front" ? setFrontImage(uri) : setBackImage(uri);
+      side === "front" ? setFrontImage(result.assets[0]) : setBackImage(result.assets[0]);
     }
   };
 
   const captureImage = async (side) => {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (!permission.granted) {
-      Toast.show({
-        type: "error",
-        text1: "Camera permission required",
-        text2: "Please allow camera access to capture your license.",
-        text2Style: { fontSize: 12 },
-      });
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Camera permission required");
       return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      quality: 0.8,
+      mediaTypes: ["images"],
+      allowsEditing: false,
+      aspect: [3, 2],
+      quality: 1,
+      selectionLimit: 1,
     });
 
     if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      side === "front" ? setFrontImage(uri) : setBackImage(uri);
+      side === "front" ? setFrontImage(result.assets[0]) : setBackImage(result.assets[0]);
+    }
+    const asset = result.assets[0];
+
+    if (asset.width < 1000) {
+      Toast.show({
+        type: "error",
+        text1: "Image too small",
+        text2: "Please upload a clearer photo of the license.",
+      });
+      return;
     }
   };
 
+  const createThumbnail = async (uri) => {
+    const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 1200 } }], { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG });
+    return result.uri;
+  };
+
+  const uriToBlob = async (uri) => {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.onload = () => resolve(xhr.response);
+      xhr.onerror = (e) => {
+        console.error("Blob fetch error:", e);
+        reject(new TypeError("Network request failed"));
+      };
+      xhr.responseType = "blob";
+      xhr.open("GET", uri, true);
+      xhr.send(null);
+    });
+  };
+
+  const uploadToFirebase = async (image, label) => {
+    const compressedUri = await createThumbnail(image.uri);
+    const blob = await uriToBlob(compressedUri);
+
+    const storage = getStorage();
+    const path = `mrDriverPartnerLicenses/${ownUser._id}/${label}_${Date.now()}.jpg`;
+    const fileRef = ref(storage, path);
+
+    await uploadBytes(fileRef, blob);
+    blob.close?.();
+
+    return await getDownloadURL(fileRef);
+  };
+
   const handleDrivingLicense = async () => {
-    if (loading) return;
+    if (uploading) return;
 
     if (!drivingLicenseNo || !frontImage || !backImage) {
       Toast.show({
@@ -82,17 +127,19 @@ export default function DrivingLicenseScreen() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const res = await authPostFetch("driver/update", {
+      setUploading(true);
+      const [frontUrl, backUrl] = await Promise.all([uploadToFirebase(frontImage, "front"), uploadToFirebase(backImage, "back")]);
+
+      const bodyTxt = {
         regiStatus: "submited",
         drivingLicence: {
-          drivingLicenseNo,
-          frontImage,
-          backImage,
+          drivingLicenseNo : drivingLicenseNo.toUpperCase(),
+          frontImage: frontUrl,
+          backImage: backUrl,
         },
-      });
+      };
+      const res = await authPostFetch("driver/update", bodyTxt);
 
       if (!res?.success) {
         Toast.show({
@@ -104,7 +151,6 @@ export default function DrivingLicenseScreen() {
         return;
       }
 
-      setOwnUser(res.data);
       navigation.navigate("submit-application");
     } catch (err) {
       Toast.show({
@@ -114,7 +160,7 @@ export default function DrivingLicenseScreen() {
         text2Style: { fontSize: 12 },
       });
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -161,7 +207,7 @@ export default function DrivingLicenseScreen() {
             <View key={side} style={styles.uploadBox}>
               {image ? (
                 <View style={styles.imageWrapper}>
-                  <Image source={{ uri: image }} style={styles.uploadedImage} />
+                  <Image source={{ uri: image.uri }} style={styles.uploadedImage} />
 
                   <TouchableOpacity style={styles.removeButton} onPress={() => (side === "front" ? setFrontImage(null) : setBackImage(null))}>
                     <Ionicons name="close-circle" size={22} color="#EF4444" />
@@ -186,11 +232,16 @@ export default function DrivingLicenseScreen() {
             </View>
           ))}
         </View>
+        {uploading && (
+          <View style={{ marginTop: 20 }}>
+            <ActivityIndicator size="large" color={PRIMARY} />
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity activeOpacity={0.85} disabled={loading} onPress={handleDrivingLicense} style={[styles.submitButton, loading && styles.submitButtonDisabled]}>
-          <Text style={styles.submitText}>{loading ? "Submitting..." : "Submit"}</Text>
+        <TouchableOpacity activeOpacity={0.85} disabled={uploading} onPress={handleDrivingLicense} style={[styles.submitButton, uploading && styles.submitButtonDisabled]}>
+          <Text style={styles.submitText}>{uploading ? "Submitting..." : "Submit"}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -82,7 +82,7 @@ export default function FindRideScreen() {
 
   const bottomSheetRef = useRef(null);
 
-  const snapPoints = useMemo(() => ["11%", "45%", "60%", "90%"], []);
+  const snapPoints = useMemo(() => ["3%", "45%", "60%", "90%"], []);
 
   useEffect(() => {
     if (sheetReady && assignedRides?.length > 0 && bottomSheetRef.current) {
@@ -166,7 +166,7 @@ export default function FindRideScreen() {
               width: 90,
               height: 4,
               borderRadius: 10,
-              backgroundColor: "#9CA3AF",
+              backgroundColor: "#fff",
             }}
           />
         </View>
@@ -342,81 +342,84 @@ export default function FindRideScreen() {
 
         <BottomSheet ref={bottomSheetRef} index={0} snapPoints={snapPoints} enablePanDownToClose={false} backgroundStyle={styles.sheetBackground} onChange={() => setSheetReady(true)} handleComponent={() => <HandleIndicator onPress={() => bottomSheetRef?.current?.snapToIndex(1)} />} overDragResistanceFactor={2} animateOnMount>
           <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
-            <TouchableOpacity onPress={() => bottomSheetRef.current.snapToIndex(1)} style={{ alignItems: "center" }}>
-              <Text style={{ textAlign: "center", marginBottom: 12, paddingHorizontal: 15, fontWeight: 700, paddingVertical: 6, fontSize: 14, lineHeight: 20, color: Colors.whiteColor, borderRadius: 20, fontFamily: Fonts.GoogleSansFlex, fontWeight: "400", letterSpacing: 0.2, backgroundColor: PRIMARY }}>Track your Ride Request Here</Text>
-            </TouchableOpacity>
-            {assignedRides?.length > 0 ? (
-              assignedRides.map((ride, index) => (
-                <View key={ride._id} style={styles.rideCard}>
-                  <View style={styles.rideHeader}>
-                    <Text style={styles.rideTitle}>Ride Request #{index + 1}</Text>
+            <View style={{ backgroundColor: "#EEF2F7", borderRadius: 20 }}>
+              <TouchableOpacity onPress={() => bottomSheetRef.current.snapToIndex(1)} style={{ alignItems: "center" }}>
+                <Text style={{ textAlign: "center", marginVertical: 12, fontSize: 14, lineHeight: 20, color: "#000", fontFamily: Fonts.GoogleSansFlex, fontWeight: "500", letterSpacing: 0.2 }}>Track your Ride Request Here</Text>
+              </TouchableOpacity>
 
-                    <View style={styles.badgeRow}>
-                      <View style={styles.badge}>
-                        <Entypo name="location" size={12} color="#0193e0" />
-                        <Text style={styles.badgeText}>{Number(ride.distancekm).toFixed(1)} km</Text>
-                      </View>
+              {assignedRides?.length > 0 ? (
+                assignedRides.map((ride, index) => (
+                  <View key={ride._id} style={styles.rideCard}>
+                    <View style={styles.rideHeader}>
+                      <Text style={styles.rideTitle}>Ride Request #{index + 1}</Text>
 
-                      <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{ride.status === "accepted" ? "Waiting" : ride.status}</Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.sectionRow}>
-                    <View style={styles.primaryLine} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.sectionTitle}>Passenger Location</Text>
-
-                      <View style={styles.locationRow}>
-                        <View style={styles.iconBoxBlue}>
-                          <Entypo name="location-pin" size={16} color="#0193e0" />
+                      <View style={styles.badgeRow}>
+                        <View style={styles.badge}>
+                          <Entypo name="location" size={12} color="#0193e0" />
+                          <Text style={styles.badgeText}>{Number(ride.distancekm).toFixed(1)} km</Text>
                         </View>
-                        <Text style={styles.locationText}>{ride.origin?.name}</Text>
-                      </View>
-                    </View>
-                  </View>
 
-                  <View style={styles.sectionRow}>
-                    <View style={styles.successLine} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.sectionTitle}>Destination</Text>
-
-                      <View style={styles.locationRow}>
-                        <View style={styles.iconBoxGreen}>
-                          <Entypo name="location-pin" size={16} color="#16a34a" />
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>{ride.status === "accepted" ? "Waiting" : ride.status}</Text>
                         </View>
-                        <Text style={styles.locationText}>{ride.destination.name}</Text>
                       </View>
                     </View>
-                  </View>
 
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        bottomSheetRef?.current?.snapToIndex(0);
-                        getDirections(ride.destination);
-                      }}
-                      style={styles.btnPrimaryRow}
-                    >
-                      <Entypo name="direction" size={18} color="#fff" />
-                      <Text style={styles.btnPrimaryRowText}>Directions</Text>
-                    </TouchableOpacity>
+                    <View style={styles.sectionRow}>
+                      <View style={styles.primaryLine} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.sectionTitle}>Passenger Location</Text>
 
-                    <TouchableOpacity disabled={ongoingRide !== null} onPress={() => sendOTP(ride)} style={[styles.secondaryButton, ongoingRide && styles.disabledButton]}>
-                      <Entypo name="key" size={18} color={ongoingRide ? "#9ca3af" : "#374151"} />
-                      <Text style={[styles.secondaryButtonText, ongoingRide && styles.disabledText]}>Start Ride</Text>
-                    </TouchableOpacity>
+                        <View style={styles.locationRow}>
+                          <View style={styles.iconBoxBlue}>
+                            <Entypo name="location-pin" size={16} color="#0193e0" />
+                          </View>
+                          <Text style={styles.locationText}>{ride.origin?.name}</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.sectionRow}>
+                      <View style={styles.successLine} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.sectionTitle}>Destination</Text>
+
+                        <View style={styles.locationRow}>
+                          <View style={styles.iconBoxGreen}>
+                            <Entypo name="location-pin" size={16} color="#16a34a" />
+                          </View>
+                          <Text style={styles.locationText}>{ride.destination.name}</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.actionRow}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          bottomSheetRef?.current?.snapToIndex(0);
+                          getDirections(ride.destination);
+                        }}
+                        style={styles.btnPrimaryRow}
+                      >
+                        <Entypo name="direction" size={18} color="#fff" />
+                        <Text style={styles.btnPrimaryRowText}>Directions</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity disabled={ongoingRide !== null} onPress={() => sendOTP(ride)} style={[styles.secondaryButton, ongoingRide && styles.disabledButton]}>
+                        <Entypo name="key" size={18} color={ongoingRide ? "#9ca3af" : "#374151"} />
+                        <Text style={[styles.secondaryButtonText, ongoingRide && styles.disabledText]}>Start Ride</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
+                ))
+              ) : (
+                <View style={styles.emptyState}>
+                  <MaterialIcons name="directions-car" size={36} color="#9ca3af" />
+                  <Text style={styles.emptyTitle}>No rides available</Text>
+                  <Text style={styles.emptySubtitle}>New requests will appear here</Text>
                 </View>
-              ))
-            ) : (
-              <View style={styles.emptyState}>
-                <MaterialIcons name="directions-car" size={36} color="#9ca3af" />
-                <Text style={styles.emptyTitle}>No rides available</Text>
-                <Text style={styles.emptySubtitle}>New requests will appear here</Text>
-              </View>
-            )}
+              )}
+            </View>
           </BottomSheetScrollView>
         </BottomSheet>
 
@@ -554,11 +557,11 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     borderWidth: 1,
     borderColor: "#E5E4E2",
-    backgroundColor: Colors.whiteColor,
+    backgroundColor: PRIMARY,
   },
 
   sheetContent: {
-    padding: 16,
+    margin: 16,
   },
 
   /* Ride Card */

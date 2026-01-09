@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { FlatList, StatusBar, Text, TouchableOpacity, View, StyleSheet, SectionList } from "react-native";
 import { useRide } from "../context/useRide";
 import { Colors, Fonts } from "../lib/style";
 
@@ -9,33 +9,72 @@ const PRIMARY = "#0193e0";
 const notificationIconMap = {
   accepted: {
     icon: "checkmark-circle",
-    color: Colors.emerald_600,
-    bg: Colors.emerald_50,
+    color: "#2E7D32",
+    bg: "#E8F5E9",
   },
 
   cancelled: {
     icon: "close-circle",
-    color: Colors.alizarin_600,
-    bg: Colors.alizarin_50,
+    color: "#C62828",
+    bg: "#FDECEA",
   },
 
   payment: {
     icon: "card-outline",
-    color: Colors.peter_river_600,
-    bg: Colors.peter_river_50,
+    color: "#1565C0",
+    bg: "#E3F2FD",
   },
 
   completed: {
     icon: "flag-outline",
-    color: Colors.turquoise_600,
-    bg: Colors.turquoise_50,
+    color: "#00695C",
+    bg: "#E0F2F1",
   },
 
   ongoing: {
     icon: "time-outline",
-    color: Colors.orange_600,
-    bg: Colors.orange_50,
+    color: "#EF6C00", 
+    bg: "#FFF3E0",
   },
+};
+
+const groupNotificationsByDate = (notifications = []) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+
+  const sections = {
+    Today: [],
+    Yesterday: [],
+    Earlier: [],
+  };
+
+  notifications.forEach((n) => {
+    if (!n.createdAt) {
+      sections.Today.push(n);
+      return;
+    }
+
+    const created = new Date(n.createdAt);
+    created.setHours(0, 0, 0, 0);
+
+    if (created.getTime() === today.getTime()) {
+      sections.Today.push(n);
+    } else if (created.getTime() === yesterday.getTime()) {
+      sections.Yesterday.push(n);
+    } else {
+      sections.Earlier.push(n);
+    }
+  });
+
+  return Object.entries(sections)
+    .filter(([, data]) => data.length > 0)
+    .map(([title, data]) => ({
+      title,
+      data: formatNotifications(data),
+    }));
 };
 
 const formatNotifications = (notifs = []) =>
@@ -105,7 +144,12 @@ export default function NotificationsScreen() {
     const res = await getNotifications(10, page);
 
     if (res?.notifications?.length > 0) {
-      setNotifications((prev) => [...prev, ...res.notifications]);
+      setNotifications((prev) => {
+        const existingIds = new Set(prev.map((n) => n._id));
+        const uniqueNew = res.notifications.filter((n) => !existingIds.has(n._id));
+        return [...prev, ...uniqueNew];
+      });
+
       setPage((prev) => prev + 1);
       setHasMore(res.hasMore);
     } else {
@@ -121,7 +165,18 @@ export default function NotificationsScreen() {
     }
   }, [notifications, page]);
 
-  const formatted = useMemo(() => formatNotifications(notifications), [notifications]);
+  const sections = useMemo(() => {
+    if (notifications.length === 0) {
+      return [
+        {
+          title: "Today",
+          data: [defaultWelcomeNotification],
+        },
+      ];
+    }
+
+    return groupNotificationsByDate(notifications);
+  }, [notifications]);
 
   return (
     <View style={styles.container}>
@@ -132,10 +187,11 @@ export default function NotificationsScreen() {
         <Text style={styles.screenSubtitle}>Stay updated with your ride activity</Text>
       </View>
 
-      <FlatList
-        data={formatted}
+      <SectionList
+        sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <NotificationCard item={item} />}
+        renderSectionHeader={({ section: { title } }) => <Text style={styles.sectionHeader}>{title}</Text>}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         onEndReached={() => {
@@ -148,12 +204,6 @@ export default function NotificationsScreen() {
           onEndReachedCalledDuringMomentum.current = false;
         }}
         onEndReachedThreshold={0.4}
-        ListFooterComponent={
-          <>
-            {loading && <Text style={styles.loading}>Loading...</Text>}
-            <NotificationCard item={defaultWelcomeNotification} />
-          </>
-        }
       />
     </View>
   );
@@ -262,5 +312,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.GoogleSansFlex,
     color: Colors.asbestos,
+  },
+  sectionHeader: {
+    marginTop: 18,
+    marginBottom: 10,
+    marginLeft: 4,
+    fontSize: 13,
+    fontFamily: Fonts.GoogleSansFlex,
+    fontWeight: "600",
+    color: Colors.concrete,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
 });

@@ -19,6 +19,7 @@ export default function VerifyOtpScreen() {
   const [canResend, setCanResend] = useState(false);
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const ref = useBlurOnFulfill({ value: otp, cellCount: CELL_COUNT });
 
@@ -77,7 +78,7 @@ export default function VerifyOtpScreen() {
 
   const handleResend = async () => {
     if (!canResend) return;
-
+    setIsResending(true);
     try {
       const res = await authPostFetch("driver/sendOTP", { mobileNumber: ownUser?.mobileNumber });
       if (!res?.success) {
@@ -94,7 +95,7 @@ export default function VerifyOtpScreen() {
     } catch (err) {
       showError("Verification failed", err?.message || "Something went wrong.");
     } finally {
-      setIsVerifying(false);
+      setIsResending(false);
     }
   };
 
@@ -105,7 +106,7 @@ export default function VerifyOtpScreen() {
   };
 
   useEffect(() => {
-    if (timer === 0) {
+    if (timer <= 0) {
       setCanResend(true);
       return;
     }
@@ -154,9 +155,9 @@ export default function VerifyOtpScreen() {
           ) : (
             <>
               <Text style={styles.resendText}>Didn’t receive the code?</Text>
-              <Text onPress={() => handleResend()} style={styles.resendAction}>
-                Resend
-              </Text>
+              <TouchableOpacity onPress={() => handleResend()} disabled={isResending}>
+                <Text style={styles.resendAction}>{isResending ? "Resending" : "Resend"}</Text>
+              </TouchableOpacity>
             </>
           )}
         </View>
