@@ -10,9 +10,8 @@ const { Colors, Fonts } = appStyle;
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const { ownUser, mrDriverPartnerLogout } = useAuth();
+  const { ownUser, mrDriverPartnerLogout, rating, totalRatings } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
-
   const handleLogout = async () => {
     mrDriverPartnerLogout();
     setModalVisible(false);
@@ -51,13 +50,26 @@ export default function ProfileScreen() {
             <View style={styles.avatarWrapper}>
               <Image
                 source={{
-                  uri: ownUser?.profilePictureFull
+                  uri: ownUser?.profilePictureFull,
                 }}
                 style={styles.avatar}
               />
             </View>
 
             <Text style={styles.userName}>{ownUser?.fullName}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
+              <Text style={{ fontSize: 16, fontWeight: "600", color: "#111827" }}>⭐ {rating}</Text>
+
+              <Text
+                style={{
+                  marginLeft: 6,
+                  fontSize: 13,
+                  color: "#6B7280",
+                }}
+              >
+                ({totalRatings} ratings)
+              </Text>
+            </View>
 
             <View
               style={[

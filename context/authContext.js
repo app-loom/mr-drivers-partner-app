@@ -23,8 +23,9 @@ export const AuthProvider = ({ children }) => {
   const [deviceID, setDeviceID] = useState(null);
   const [pendingNotification, setPendingNotification] = useState(null);
   const [initialRoute, setInitialRoute] = useState(null);
-  const [notificaitons, setNotificaitons] = useState([]);
   const [isOnline, setIsOnline] = useState("Offline");
+  const [rating, setRating] = useState(0);
+  const [totalRatings, setTotalRatings] = useState(0);
 
   const app = getApp();
   const messagingInstance = getMessaging(app);
@@ -114,7 +115,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (accessToken !== null) {
       getInitData();
-      getNotificaitonData();
     }
   }, [accessToken]);
 
@@ -133,27 +133,9 @@ export const AuthProvider = ({ children }) => {
     const result = await authPostFetch("driver/getuser");
     if (result.success) {
       setOwnUser(result.data);
-      setNotificaitons(result.notificaiton);
+      setRating(result.averageRating)
+      setTotalRatings(result.totalRatings)
       setInitialRoute(getInitialRoute(result.data));
-      setEventLoading(false);
-      setIsInitLoading(false);
-    } else {
-      setIsInitLoading(false);
-      if (result.trigger === "Logout") {
-        mrDriverPartnerLogout();
-      }
-    }
-  };
-
-  const getNotificaitonData = async () => {
-    setIsInitLoading(true);
-    const body = {
-      limit: 10,
-      page: 1,
-    };
-    const result = await authPostFetch("driver/getNotifications", body);
-    if (result.success) {
-      setNotificaitons(result.notifications);
       setEventLoading(false);
       setIsInitLoading(false);
     } else {
@@ -360,5 +342,5 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  return <AuthContext.Provider value={{ ownUser, mrDriverPartnerSignin, mrDriverPartnerSignup, mrDriverPartnerLogout, mrDriverRefreshToken, authPostFetch, accessToken, isInitLoading, eventLoading, pushToken, deviceID, pendingNotification, setPendingNotification, setInitialRoute, initialRoute, setNotificaitons, notificaitons, updateDriverStatus, isOnline }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ ownUser, mrDriverPartnerSignin, mrDriverPartnerSignup, mrDriverPartnerLogout, mrDriverRefreshToken, authPostFetch, accessToken, isInitLoading, eventLoading, pushToken, deviceID, pendingNotification, initialRoute, updateDriverStatus, isOnline, rating, totalRatings }}>{children}</AuthContext.Provider>;
 };
